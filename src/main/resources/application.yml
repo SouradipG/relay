@@ -1,0 +1,74 @@
+spring:
+  application:
+    name: relay
+  threads:
+    virtual:
+      enabled: true
+  mongodb:
+    uri: mongodb://localhost:27017/relay
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 500ms
+  lifecycle:
+    timeout-per-shutdown-phase: 40s
+
+server:
+  shutdown: graceful
+
+relay:
+  # Override in every real environment.
+  admin-token: change-me
+  providers:
+    - name: alpha
+      base-url: http://localhost:8091
+      model: sim-large
+      initial-concurrency: 8
+      max-concurrency: 64
+      connect-timeout: 1s
+      first-byte-timeout: 10s
+      # Long enough for a model to think between tokens, short enough that a stalled stream
+      # does not hold a connection and a budget reservation for minutes.
+      idle-timeout: 15s
+    - name: beta
+      base-url: http://localhost:8092
+      model: sim-small
+      initial-concurrency: 8
+      max-concurrency: 64
+      connect-timeout: 1s
+      first-byte-timeout: 10s
+      idle-timeout: 15s
+  breaker:
+    window: 20
+    minimum-calls: 10
+    failure-rate: 0.5
+    open-for: 10s
+  chat:
+    max-streams: 500
+    # Well under the 60 s idle timeout of an AWS ALB.
+    heartbeat: 15s
+    max-duration: 10m
+    drain-timeout: 25s
+  jobs:
+    workers-enabled: true
+    workers: 8
+    scheduling: FAIR
+    lease: 30s
+    max-attempts: 6
+    retry-base: 1s
+    retry-max: 5m
+    idle-poll: 200ms
+  webhooks:
+    dispatcher-enabled: true
+    poll: 500ms
+    timeout: 5s
+    max-attempts: 10
+    retry-base: 2s
+    retry-max: 1h
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
