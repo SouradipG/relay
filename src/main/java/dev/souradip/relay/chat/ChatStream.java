@@ -79,6 +79,8 @@ class ChatStream {
             while ((text = upstream.next()) != null) {
                 if (!send("token", Map.of("text", text))) {
                     clientLeft();
+                    lease.abandoned();
+                    finish(usageOrCounted().total());
                     return;
                 }
             }

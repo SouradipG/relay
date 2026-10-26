@@ -21,7 +21,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -61,7 +60,7 @@ class ChatController {
         this.config = properties.chat();
     }
 
-    @PostMapping(path = "/v1/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @PostMapping("/v1/chat")
     ResponseEntity<SseEmitter> chat(@RequestHeader(value = "X-Api-Key", required = false) String apiKey, @Valid @RequestBody ChatRequest request) {
         Tenant tenant = tenants.authenticate(apiKey);
         if (registry.draining()) {
